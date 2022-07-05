@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="static/style.css">
+
+    <title>F.N.T.V</title>
+</head>
+<body>
+
+    <div id="mainGrid01">
+        <div>
+            <h1 class="titleMainPage">Forex Neural Training Visualizer</h1>
+        </div>
+
+        <form action="trainingPage.html" method="GET">
+            <div>
+                
+                <h3>Window Size:</h3>
+                <label>15</label>
+                <input type="range" min="15" max="100" value="15" class="slider" id="myRange01" name="wind_sliderNum">
+                <label>100 </label>
+                <label style="margin-left: 60px;" class="smallInputs" id="hourInput" name="uname">00</label>
+                <label>Hours :</label>
+                <label class="smallInputs" id="minuteInput" placeholder="MM" name="uname">15</label>
+                <label> Minutes</label>
+
+                <h3>Hidden Nodes:</h3>
+                <label>1</label>
+                <input type="range" min="1" max="14400" value="1" class="slider" id="myRange02" oninput="document.getElementById('nodeNumber').value = this.value">
+                <label>14400</label>
+                <input style="margin-left: 54px;" value="1" type="text" class="otherInput" id="nodeNumber" name="num_hid_nodes" oninput="document.getElementById('myRange02').value = this.value" required>
+
+                <h3>Traders Population:</h3>
+                <label>1</label>
+                <input type="range" min="1" max="100" value="1" class="slider" id="myRange03" oninput="document.getElementById('populationNumber').value = this.value ">
+                <label >100</label>
+                <input style="margin-left: 69px;" value="1" type="text" class="otherInput" id="populationNumber" name="pop_size" oninput="document.getElementById('myRange03').value = this.value" required>
+
+                <h3>MAX Generation:</h3>
+                <input type="text" class="otherInput" id="generationNumber" name="max_gen" required>
+
+            </div>
+            <div>
+                <br>
+                <br>
+                <p class="buttonHolder" align="center">
+                    <button>TRAIN</button>
+
+                </p>
+            </div>
+        </form>
+
+    </div>
+
+    <script>
+        var slider = document.getElementById("myRange01");
+        var hourOutput = document.getElementById("hourInput");
+        var minuteOutput = document.getElementById("minuteInput");
+    
+        slider.oninput = function() {
+            minuteOutput.innerHTML = String(parseInt(slider.value) % 60);
+            hourOutput.innerHTML  = "00";
+            if (parseInt(slider.value) >= 60) {
+                hourOutput.innerHTML = "01";
+            }
+        }
+        </script>
+</body>
+
+    
+</html>

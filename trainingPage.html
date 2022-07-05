@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="static/style2.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.8.0/dist/chart.min.js"></script>
+    <script type="text/javascript" src="traders.js"></script>
+    <script type="text/javascript" src="nn.js"></script>
+    <script type="text/javascript" src="matrix.js"></script>
+    <script type="text/javascript" src="chartObject.js"></script>
+    <script type="text/javascript" src="queryFile.js"></script>
+    <script type="text/javascript" src="mainFunctions.js"></script>
+    
+
+    <title>Neural Training Visualizer</title>
+</head>
+<body>
+    <div id="training_grid">
+        <div id="left_grid">
+            <h1 id="gen_num_show"></h1>
+            <p id="other_info"></p>
+            <div id="chert_div">
+                <canvas id="chart" style="height: 100%;"></canvas>
+            </div>
+            <div id="outerDiv">
+                <div id="speedDiv">
+                    <p id="speedElement">1000ms</p>
+                    <button onclick="speedUp()">Speed Up</button>
+                    <button onclick="speedDown()">Speed Down</button>
+                </div>
+                <div id="ruleDiv">
+                    <p><strong>Traders would be removed if:</strong></p>
+                    <p>They do not trade for a whole day, <strong>OR</strong> they have a balance of ZERO or less, <strong>OR</strong> out of every 5 trades, they lose money on 3 or more.<br></p>
+                    
+                    <p><strong>Extra Info:</strong></p>
+                    <p>Training would not restart from the 0 index to find new strategies rather than memorizing how to solve the same pattern.</p>
+                </div>
+            </div>
+        </div>
+        <div id="right_grid">
+            <h1>Trader Leaderboard:</h1>
+            <div id="ranking_div">
+
+            </div>
+        </div>
+    </div>
+</body>
+
+
+<script>
+    //URL VARIABLES
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+
+    const POPULATION_INT = parseInt(urlParams.get('pop_size'));
+    const INPUT_WINDOW = parseInt(urlParams.get('wind_sliderNum'));
+    const BRAIN_INPUT_NODES = (INPUT_WINDOW+1)*11;
+    const BRAIN_HIDDEN_NODES = parseInt(urlParams.get('num_hid_nodes'));
+    const BRAIN_OUTPUTS_NODES = 2;
+    const MAX_GENERATION = parseInt(urlParams.get('max_gen'));
+
+    //SPEED VARIABLE
+    let speedDelay = 1000;
+
+    //CHART VARIABLE
+    let chartX_axisMin = 0;
+    let chartX_axisMax = 100;
+    let currentTradingIndex = 1;
+
+    //TRAINING VARIABLES
+    let savedStringDay = "Start";
+    let savedStringMonth = "";
+    var generation = 0;
+    var endingDatasetIndexInt = 100000;
+    var tradersArray = [];
+    var failedTradersArray = [];
+    var inputDataArray = [];
+
+    let currentTradeDatetimeString = "2018-01-02 09:05:00";
+    let currentRemovedBest = "N/A";
+    let currentBestTrader = "N/A"
+    
+
+    let dayInt = 0;
+    
+    createTraders()
+    let myLineChart = new chartObject();
+    
+    async function main() {
+        if (currentTradingIndex <= endingDatasetIndexInt) {
+            let tempChartBidDataset = [];
+            let tempChartBuyLabeledDataset = [];
+            let tempChartSellLabeledDataset = [];
+            
+            
+            
+            document.getElementById("gen_num_show").innerHTML= "GENERATION: " + String(generation) + " / " + String(MAX_GENERATION) ;
+            document.getElementById("other_info").innerHTML=" <strong>Population:</strong> " + String(tradersArray.length) + " / " + String(POPULATION_INT) + " <br> <strong>Current Trading Datetime:</strong> " + currentTradeDatetimeString.slice(0, 11) + " | " + currentTradeDatetimeString.slice(10, 16) + " | DAY " + String(dayInt) + "<br> <strong>All Time Removed Trader:</strong> " + getBestRemovedTrader() + "<br><strong>Current Alive Trader:</strong> " + getBestAliveTrader();
+            
+            //MOVE TO NEXT GENERATION
+            if (tradersArray.length == 0) {
+                generation = generation + 1;
+                document.getElementById("gen_num_show").innerHTML= "GENERATION: " + String(generation) + " / " + String(MAX_GENERATION) ;
+                document.getElementById("other_info").innerHTML=" Population: " + String(tradersArray.length) + " / " + String(POPULATION_INT) + " <br> Current Trading Datetime: " + currentTradeDatetimeString.slice(0, 11) + " | " + currentTradeDatetimeString.slice(10, 16) + " | DAY " + String(dayInt) + "<br> All Time Removed Trader: " + currentRemovedBest.name + "<br><strong>Current Alive Trader:</strong> " + "Trader_1";
+                var holdMaxFitnessInt = 0;
+                
+                for (let i = 0; i < failedTradersArray.length; i++) {
+                    if (failedTradersArray[i].fitness > holdMaxFitnessInt) {
+                        holdMaxFitnessInt = failedTradersArray[i].fitness;
+                    };
+                };
+
+                for (let i = 0; i < failedTradersArray.length; i++) {
+                    if (failedTradersArray[i].fitness == holdMaxFitnessInt) {
+                        //mutate brain
+                        for (let i = 0; i < POPULATION_INT; i++) {
+                            failedTradersArray[i].brain.mutate(0.1);
+                            var name = "Trader_" + (String(i+1))
+                            tradersArray[i] = new Traders(failedTradersArray[i].brain,parseFloat(10.00),name)
+                        }
+                    };
+                };
+
+                failedTradersArray = [];
+            };
+            
+            resetRank()
+            
+            //VISUALIZE CHART
+            if (currentTradingIndex >= 75) {
+                chartX_axisMax = currentTradingIndex + 25;
+                chartX_axisMin = chartX_axisMax - 100;
+            } else {
+                chartX_axisMin = 0
+                chartX_axisMax = 100
+            }
+
+            await getBuyData(chartX_axisMin,chartX_axisMax).then(
+                function(value) {
+                    var tempMaxY_axis = "";
+                    var tempMinY_axis = "";
+                    
+                    for (let i = 0; i < value.length; i++) {
+                        const columns = value[i].split(',');
+                        
+                        if (columns[0] == String(currentTradingIndex + 1)){
+                            currentTradeDatetimeString = columns[1]
+                        }
+                        
+                        if (tempMaxY_axis < parseFloat(columns[2]) || tempMaxY_axis == "") {
+                            tempMaxY_axis = parseFloat(columns[2]);
+                        };
+                        
+                        if (tempMinY_axis > parseFloat(columns[2]) || tempMinY_axis == "") {
+                            tempMinY_axis = parseFloat(columns[2]);
+                        };
+
+                        var temp = {x: parseInt(columns[0]), y: parseFloat(columns[2])};
+                        tempChartBidDataset.push(temp);
+                        
+                        if (columns[10] == "2") {
+                            tempChartBuyLabeledDataset.push(temp);
+                        }else if (columns[10] == "3") {
+                            tempChartSellLabeledDataset.push(temp);
+                        };
+                    };
+                    
+                    myLineChart.setMaxAndMin_YAxis(tempMinY_axis, tempMaxY_axis, currentTradingIndex);
+                    myLineChart.updateBidLine(tempChartBidDataset);
+                    myLineChart.updateBuyingPoints(tempChartBuyLabeledDataset);
+                    myLineChart.updateSellingPoints(tempChartSellLabeledDataset);
+                }
+            );
+            
+            //FILL INPUT ARRAY
+            let actualTradingStartIndex = currentTradingIndex - INPUT_WINDOW;
+            if (actualTradingStartIndex < 0){
+                actualTradingStartIndex = 0;
+            }
+            
+            let inputDataArray =[];
+            let act_label = "";
+            
+            await input_data(actualTradingStartIndex, currentTradingIndex).then(
+                function(value) {
+                    //console.log(value);
+                    for (let i = 0; i < value.length; i++) {
+                        const columns = value[i].split(',');
+                        act_label = columns[11];
+                        
+                        for (let z = 0; z < columns.length; z++) {
+                            if (z != 11){
+                                inputDataArray.push(columns[z]);
+                            };
+                        };
+                    };
+                }
+            );
+            
+            //console.log(inputDataArray.length);
+            //console.log(inputDataArray[inputDataArray.length - 11]);
+            //console.log(inputDataArray);
+            //console.log(INPUT_WINDOW)
+            //console.log(act_label);
+            //console.log(((INPUT_WINDOW + 1)*11));
+            
+            
+            
+            function executeTrade() {
+                if ( BRAIN_INPUT_NODES == inputDataArray.length) {
+                    let tot_points = 0;
+                    
+                    //CHECK IF DAY HAS PASSED - REMOVE UNPROFITABLE TRADERS
+                    if (savedStringDay === "Start") {
+                        savedStringDay = inputDataArray[inputDataArray.length - 11];
+                        savedStringMonth = inputDataArray[inputDataArray.length - 11];
+                    }else if (savedStringDay != inputDataArray[inputDataArray.length - 11] && savedStringMonth != inputDataArray[inputDataArray.length - 11]) {
+                        savedStringDay = inputDataArray[inputDataArray.length - 11];
+                        savedStringMonth = inputDataArray[inputDataArray.length - 11];
+                        dayInt = dayInt + 1;
+                        
+                        for (let i = tradersArray.length - 1; i >= 0; i--) {
+                            if (tradersArray[i].balance <= 10 ) {
+                                failedTradersArray.push(tradersArray.splice(i,1)[0]);
+                            }else if (tradersArray[i].didDayTrade == false) {
+                                tradersArray[i].fitness = 0;
+                                failedTradersArray.push(tradersArray.splice(i,1)[0]);
+                            }else{
+                                tradersArray[i].didDayTrade = false;
+                            }
+                        }
+                    };
+                    
+                    //EXECUTE TRADE
+                    for (let i = 0; i < tradersArray.length; i++) {
+                        let outcome = tradersArray[i].brain.predict(inputDataArray);
+                        if (outcome[0] > 0.5 && outcome[0] > outcome[1]){
+                            //Buy
+                            document.getElementById(tradersArray[i].name).style.backgroundColor = "#ADFF2F";
+                            tradersArray[i].makeATrade(2.0,act_label);
+                            
+                            tot_points = tot_points + tradersArray[i].points;
+                            
+                            if (tradersArray[i].isSuccessfulTrade == true){
+                                document.getElementById(tradersArray[i].name).style.borderColor = "green";
+                            }else{
+                                document.getElementById(tradersArray[i].name).style.borderColor = "red";
+                            }
+                            
+                        } else if (outcome[1] > 0.5 && outcome[1] > outcome[0]){
+                            //SELL
+                            document.getElementById(tradersArray[i].name).style.backgroundColor = "#FF7F50";
+                            tradersArray[i].makeATrade(3.0,act_label);
+                            
+                            tot_points = tot_points + tradersArray[i].points;
+                            
+                            if (tradersArray[i].isSuccessfulTrade == true){
+                                document.getElementById(tradersArray[i].name).style.borderColor = "green";
+                            }else{
+                                document.getElementById(tradersArray[i].name).style.borderColor = "red";
+                            }
+                            
+                        } else {
+                            // do nothing
+                            tradersArray[i].makeATrade(1.0,act_label);
+                            
+                            tot_points = tot_points + tradersArray[i].points;
+                            
+                            if (tradersArray[i].isSuccessfulTrade == true){
+                                document.getElementById(tradersArray[i].name).style.borderColor = "green";
+                            }else{
+                                document.getElementById(tradersArray[i].name).style.borderColor = "red";
+                            }
+                            
+                        }
+                    };
+                    
+                    if (failedTradersArray.length >= 1) {
+                        for (let i = 0; i < failedTradersArray.length; i++) {
+                            tot_points = tot_points + failedTradersArray[i].points;
+                        }
+                    }
+                    
+                    
+                    
+                    //REORDER TRADER ARRAY
+                    tradersArray.sort((a, b) => {
+                        return b.total - a.total;
+                    });
+                    
+                    //GIVE TRADERS THEIR FITNESS
+                    for (let i = 0; i < tradersArray.length; i++) {
+                        tradersArray[i].fitness =  tradersArray[i].points / tot_points;
+                        tradersArray[i].fitness.toFixed(7)
+                    };
+                    
+                    //REMOVE UNPROFITABLE TRADERS
+                    for (let i = 0; i < tradersArray.length; i++) {
+                        if (tradersArray[i].balance <= 0 || tradersArray[i].hasFailedTradeArray == true) {
+                            failedTradersArray.push(tradersArray.splice(i,1)[0]);
+                            
+                        }
+                        
+                    };
+                    
+                    failedTradersArray.sort((a, b) => {
+                        return b.fitness - a.fitness;
+                    });
+                    
+                    if (failedTradersArray.length >= 1) {
+                        if (currentRemovedBest == "N/A"){
+                            currentRemovedBest = failedTradersArray[0]
+                        }else {
+                            if (currentRemovedBest.fitness < failedTradersArray[0].fitness){
+                                currentRemovedBest= failedTradersArray[0]
+                            }
+                        }
+                        
+                    }
+                    
+                }
+            };
+            
+            await executeTrade();
+            
+            currentTradingIndex = currentTradingIndex + 1;
+            
+            //SLOW OR SPEED UP TRAINING FUNCTION
+            await setTimeout(function() {
+                //console.log("");
+                main();
+            }, speedDelay);
+
+            
+        } else {
+            console.log("Training Ended!")
+        }
+
+    }
+
+    main();
+    
+
+ </script>
+</html>
