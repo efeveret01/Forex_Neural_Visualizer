@@ -1,0 +1,152 @@
+html, body {
+    margin: 0%;
+    height: 100%;
+    padding-right: 1%;
+    padding-left: 1%;
+    background-color: rgb(244, 245, 248);
+}
+
+
+#training_grid {
+    display: grid;
+    height: 100%;
+    width: 100%;
+    margin: 0%;
+    grid-template-columns: 70% 30%;
+    grid-template-rows: 100%;
+}
+
+#mainGrid02 {
+    display: grid;
+    padding:0% 10% 0% 10%;
+    height: 100%;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+    }
+
+#horizontalGrid {
+    display: grid;
+    height: 99%;
+    align-items: inherit;
+    grid-template-columns: 3fr minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    }
+
+#horizontalGrid > #rightGridDiv{
+    justify-items: start;
+}
+
+#secondpageButtomGrid {
+    display: grid;
+    height: 44%;
+    grid-template-columns: 1fr 3fr;
+    grid-template-rows: minmax(0, 1fr);
+}
+
+#secondpageSideGrid {
+    display: grid;
+    padding: 5px;
+    /* height: 100%; */
+    grid-template-rows: 65% minmax(0, 1fr);
+    }
+
+#selectedColumns {
+    accent-color: yellow;
+}
+
+#myCanvas {
+    width: 100%;
+    height: 400px;
+    }
+
+#myCanvas02 {
+    width: 100%;
+    height: 60%;
+    }
+
+    #left_grid {
+        height: 100%;
+        margin: 0%;
+        padding-left: 10px;
+        padding-right: 20px;
+        background-color: white;
+    }
+
+        #chert_div {
+            height: 60%;
+            width: 100%;
+            margin-top: 25px;
+            margin-bottom: 70px;
+            margin-left: 0%;
+            margin-right: 0%;
+            background-color: white;
+        }
+
+            canvas {
+                height: 40%;
+                font-size: 20px;
+                /* border-color: blue;
+                border-style: solid; */
+            }
+        
+        #outerDiv {
+            display:inline;
+        }
+        
+            #speedDiv {
+                float:left;
+                margin-left:3px;
+                margin-right:3px;
+            }
+            
+            #ruleDiv {
+                float:right;
+                margin-left:3px;
+                margin-right:3px;
+            }
+
+    #right_grid {
+        height: 100%;
+        margin: 0%;
+        padding-left: 10px;
+        padding-right: 10px;
+        background-color: rgb(244, 245, 248);
+    }
+
+        #ranking_div {
+            height: 90%;
+            width: 100%;
+            margin-top: 16px;
+            background-color: rgb(48, 94, 107);
+            padding-left: 7px;
+            padding-right: 7px;
+            padding-top: 1px;
+            padding-bottom: 1px;
+            overflow: auto;
+        }
+        
+        #ranking_div > p {
+            color: gold;
+        }
+        
+        .Div1xxx {
+            border-radius: 25px;
+            background-color: white;
+            margin-top: 4px;
+            margin-bottom: 4px;
+            height: 10px;
+            border: 2px solid black;
+            padding: 1rem;
+        }
+        
+        .Div2xxx {
+            border-radius: 25px;
+            background-color: darkgray;
+            margin-top: 4px;
+            margin-bottom: 4px;
+            height: 10px;
+            border: 2px solid black;
+            padding: 1rem;
+        }
+
+        

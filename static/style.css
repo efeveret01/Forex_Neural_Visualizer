@@ -1,0 +1,62 @@
+html, body {
+    margin: 0%;
+    padding: 0%;
+    background-color: rgb(244, 245, 248); 
+}
+
+#mainGrid01 {
+    display: inherit;
+    height: 100%;
+    width: 80%;
+    margin: auto;
+    margin-top: 4%;
+    background-color: white;
+    padding-bottom: 7px;
+    }
+
+#mainGrid01 > form {
+    height: 100%;
+    width: 70%;
+    font-size: 18px;
+    margin-top: 140px;
+    margin-left: auto;
+    margin-right: auto;
+    }
+
+.titleMainPage {
+    font-size: 90px;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 0px;
+}
+
+.slider {
+    width: 550px;
+    background: #d3d3d3;
+    outline: none;
+    -webkit-transition: .2s;
+    transition: opacity .2s;
+    }
+
+.smallInputs {
+    width: 30px;
+    }
+
+.otherInput {
+    width: 100px;
+    position: right;
+    }
+
+button {
+    background-color: rgb(48, 94, 107); /* Green */
+    border: none;
+    color: white;
+    padding: 30px 32px;
+    text-align: center;
+    text-decoration: none;
+    font-size: 25px;
+    margin-left: auto;
+    margin-right: auto;
+    
+    }
