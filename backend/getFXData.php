@@ -13,7 +13,7 @@ require_once 'pdoconfig.php';
 
 
 $chosen_case = $_REQUEST["case01"];
-$conn = mysqli_connect("localhost", "u624086425_efeverett01", "s8C|;gW1", "u624086425_FxDatabase");
+$conn = mysqli_connect("serverName", "userName", "password", "database");
 $output = "";
 
 
@@ -86,4 +86,5 @@ switch ($chosen_case) {
 }
 
 echo $output;
+
 ?>
