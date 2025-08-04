@@ -6,8 +6,10 @@
       exit; 
     } 
     
-    $host = 'localhost';
-    $dbname = 'u624086425_FxDatabase';
-    $username = 'u624086425_efeverett01';
-    $password = 's8C|;gW1';
+
+    $host = 'serverName';
+    $dbname = 'database';
+    $username = 'userName';
+    $password = 'password';
+
 ?> 
